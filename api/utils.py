@@ -1,10 +1,10 @@
 import datetime
+
 import requests
 from sqlalchemy.orm import Session
 
-from core.config import settings
-from api.schema import QuizSchema
 from api.models import Quiz
+from core.config import settings
 
 
 async def get_date(dt: str):
@@ -15,13 +15,18 @@ async def get_date(dt: str):
 async def fetch_questions(question_num: int):
     params = {"count": question_num}
     response = requests.get(settings.QUIZ_URL, params=params)
+
     return response.json()
 
 
 async def check_save_questions(questions: list, db: Session):
     counter = 0
     question_ids = [question["id"] for question in questions]
-    existing_questions_ids = db.query(Quiz.question_number).filter(Quiz.question_number.in_(question_ids)).all()
+    existing_questions_ids = (
+        db.query(Quiz.question_number)
+        .filter(Quiz.question_number.in_(question_ids))
+        .all()
+    )
     existing_questions_ids = [qid for qid, in existing_questions_ids]
 
     questions_to_save = []
@@ -29,12 +34,14 @@ async def check_save_questions(questions: list, db: Session):
         if question["id"] in existing_questions_ids:
             counter += 1
         else:
-            questions_to_save.append(Quiz(
-                question_number=question["id"],
-                question=question["question"],
-                answer=question["answer"],
-                created_at=await get_date(question["created_at"])
-            ))
+            questions_to_save.append(
+                Quiz(
+                    question_number=question["id"],
+                    question=question["question"],
+                    answer=question["answer"],
+                    created_at=await get_date(question["created_at"]),
+                )
+            )
 
     if questions_to_save:
         db.bulk_save_objects(questions_to_save)
