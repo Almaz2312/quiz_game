@@ -6,14 +6,12 @@ repos:
         additional_dependencies: ['click==8.0.4']
         language_version: python3.10
         args: ["--line-length=79"]
-        exclude: ^.*\b(migrations)\b.*$
 
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
         args: [ "--max-line-length=79" ]
-        exclude: "migrations|config"
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
